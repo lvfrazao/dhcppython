@@ -9,8 +9,7 @@ import collections
 from . import packet, options, utils
 from .exceptions import DHCPClientError
 
-CLIENT_VER = "0.0.1"
-CLIENT_NAME = "DORA"
+
 COL_LEN = 80
 
 Lease = collections.namedtuple(
@@ -37,7 +36,6 @@ def format_dhcp_packet(pkt: packet.DHCPPacket) -> str:
         f"{pkt.op} / {msg_type} / {broadcast}\n"
         + f"{len(pkt.asbytes)} bytes / TX ID {hex(pkt.xid).upper()} / {pkt.secs} seconds elapsed\n"
         + "Client info:".ljust(client_info_padding)
-        # + f"{pkt.htype} - {pkt.chaddr} ({vendor := utils.mac2vendor(pkt.chaddr)})"[:COL_LEN - 18] + "\n"
         + client_info + "\n"
         + "Client address:".ljust(client_info_padding)
         + f"{pkt.ciaddr}\n"
