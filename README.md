@@ -15,7 +15,7 @@ A Python implementation of a DHCP client and the tools to manipulate DHCP packet
 
 * Python 3.8.0 or higher
 
-NOTE: This has been tested on Ubuntu 18.04 and Windows WSL. May or may not work on other platforms.
+**NOTE: This has been tested on Ubuntu 18.04 and Windows WSL. May or may not work on other platforms.**
 
 ## Packet Parser
 
