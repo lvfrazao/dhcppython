@@ -44,7 +44,9 @@ def random_mac(num_bytes: int = 6, delimiter: str = ":") -> str:
     >>> random_mac()
     'CC:AC:3C:85:A4:EF'
     """
-    return delimiter.join(["".join(random.choices(VALID_HEX, k=2)) for i in range(num_bytes)])
+    return delimiter.join(
+        ["".join(random.choices(VALID_HEX, k=2)) for i in range(num_bytes)]
+    )
 
 
 def is_mac_addr(mac_addr: str) -> bool:
@@ -58,17 +60,26 @@ def is_mac_addr(mac_addr: str) -> bool:
     if len(mac_addr.split(delimiter)) != 6 or len(mac_addr) != 17:
         return False
     if any([b not in VALID_HEX for b in "".join(mac_addr.split(delimiter))]):
-        return False    
+        return False
     return True
 
 
 mac_vendor_map: Dict[str, str] = {
-    line.split("\t\t")[0].split(" ")[0]: line.split("\t\t")[1] for line in 
-    [line.strip() for line in importlib.resources.read_text(runtime_assets, "oui.txt").split("\n") if "(base 16)" in line]
+    line.split("\t\t")[0].split(" ")[0]: line.split("\t\t")[1]
+    for line in [
+        line.strip()
+        for line in importlib.resources.read_text(runtime_assets, "oui.txt").split("\n")
+        if "(base 16)" in line
+    ]
 }
+
+
 def mac2vendor(mac_addr: str) -> str:
     if is_mac_addr(mac_addr):
-        return mac_vendor_map.get(mac_addr.replace(":", "").replace("-", "")[:6].upper(), "Unknown Manufacturer")
+        return mac_vendor_map.get(
+            mac_addr.replace(":", "").replace("-", "")[:6].upper(),
+            "Unknown Manufacturer",
+        )
     else:
         raise ValueError(f"{mac_addr} is not a valid MAC address")
 
@@ -78,7 +89,7 @@ def get_ip_by_iface(iface: str) -> str:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    s.connect(('255.255.255.255', rand_port))
+    s.connect(("255.255.255.255", rand_port))
     return s.getsockname()[0]
 
 

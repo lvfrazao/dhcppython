@@ -29,14 +29,19 @@ def format_dhcp_packet(pkt: packet.DHCPPacket) -> str:
     broadcast = "BROADCAST" if pkt.flags else "UNICAST"
     client_info_padding = 18
     client_info = f"{pkt.htype} - {pkt.chaddr} ({utils.mac2vendor(pkt.chaddr)})"
-    if (visual_diff := (utils.visual_length(client_info) - (COL_LEN - client_info_padding))) > 0:
+    if (
+        visual_diff := (
+            utils.visual_length(client_info) - (COL_LEN - client_info_padding)
+        )
+    ) > 0:
         client_info = client_info[:-visual_diff]
 
     output = (
         f"{pkt.op} / {msg_type} / {broadcast}\n"
         + f"{len(pkt.asbytes)} bytes / TX ID {hex(pkt.xid).upper()} / {pkt.secs} seconds elapsed\n"
         + "Client info:".ljust(client_info_padding)
-        + client_info + "\n"
+        + client_info
+        + "\n"
         + "Client address:".ljust(client_info_padding)
         + f"{pkt.ciaddr}\n"
         + "Your address:".ljust(client_info_padding)
@@ -48,13 +53,22 @@ def format_dhcp_packet(pkt: packet.DHCPPacket) -> str:
     )
 
     output = (
-        "\n".join([f"; {line.ljust(COL_LEN if utils.visual_length(line) < COL_LEN else 0, padding)};" for line in output.split("\n")]) + "\n"
+        "\n".join(
+            [
+                f"; {line.ljust(COL_LEN if utils.visual_length(line) < COL_LEN else 0, padding)};"
+                for line in output.split("\n")
+            ]
+        )
+        + "\n"
     )
     output = line_divider + output + line_divider
     output += "; " + "OPTIONS:".ljust(COL_LEN, padding) + ";\n"
     output += (
         "\n".join(
-            [f"; {line.ljust(COL_LEN, padding)};" for line in options_list.json.split("\n")]
+            [
+                f"; {line.ljust(COL_LEN, padding)};"
+                for line in options_list.json.split("\n")
+            ]
         )
         + "\n"
     )
@@ -68,7 +82,7 @@ class DHCPClient(object):
         self,
         interface: str = None,
         send_from_port: int = 68,
-        send_to_port:int = 67,
+        send_to_port: int = 67,
         max_retries: int = 10,
         socket_poll_interval: int = 10,
         retry_interval: int = 100,
@@ -92,7 +106,9 @@ class DHCPClient(object):
         self.offer_servers: List[str] = []
         self.ack_server: str = ""
 
-    def send_discover(self, server: str, discover_packet: packet.DHCPPacket, verbosity: int):
+    def send_discover(
+        self, server: str, discover_packet: packet.DHCPPacket, verbosity: int
+    ):
         self.send(server, self.send_to_port, discover_packet.asbytes, verbosity)
 
     def receive_offer(self, tx_id: int, verbosity: int) -> Optional[packet.DHCPPacket]:
@@ -112,7 +128,9 @@ class DHCPClient(object):
                 print("Did not receive offer packet")
         return offer
 
-    def send_request(self, server: str, request_packet: packet.DHCPPacket, verbosity: int):
+    def send_request(
+        self, server: str, request_packet: packet.DHCPPacket, verbosity: int
+    ):
         self.send(server, self.send_to_port, request_packet.asbytes, verbosity)
 
     def receive_ack(self, tx_id: int, verbosity: int) -> Optional[packet.DHCPPacket]:
@@ -211,7 +229,9 @@ class DHCPClient(object):
         if verbose:
             print(f"Client terminated after {lease_time * 1000:.0f} ms")
         else:
-            print(f"Lease succesful: {ack.yiaddr} -- {ack.chaddr} -- {lease_time * 1000:.0f} ms elapsed")
+            print(
+                f"Lease succesful: {ack.yiaddr} -- {ack.chaddr} -- {lease_time * 1000:.0f} ms elapsed"
+            )
         return lease
 
     def get_valid_pkt(self, data: bytes) -> Optional[packet.DHCPPacket]:
@@ -224,26 +244,49 @@ class DHCPClient(object):
             )
         return pkt
 
-    def listen(self, tx_id: int, msg_type: str, verbosity: int) -> Tuple[Optional[packet.DHCPPacket], Optional[str]]:
-        logging.debug(f"Listening on {self.interface or 'all interfaces'}, UDP ports {self.listening_ports}")
+    def listen(
+        self, tx_id: int, msg_type: str, verbosity: int
+    ) -> Tuple[Optional[packet.DHCPPacket], Optional[str]]:
+        logging.debug(
+            f"Listening on {self.interface or 'all interfaces'}, UDP ports {self.listening_ports}"
+        )
         tries = 0
         dhcp_packet, addr = None, None
         while tries < self.max_tries:
-            logging.debug(f"Select: {select.select(self.listening_sockets, self.writing_sockets, self.except_sockets, 0)}")
-            if len(socks := select.select(self.listening_sockets, self.writing_sockets, self.except_sockets, self.select_timout)[0]):
+            logging.debug(
+                f"Select: {select.select(self.listening_sockets, self.writing_sockets, self.except_sockets, 0)}"
+            )
+            if len(
+                socks := select.select(
+                    self.listening_sockets,
+                    self.writing_sockets,
+                    self.except_sockets,
+                    self.select_timout,
+                )[0]
+            ):
                 for sock in socks:
                     data, addr = sock.recvfrom(self.max_pkt_size)
                     logging.debug(f"Received data from {addr}: {data}")
-                    if (dhcp_packet := self.get_valid_pkt(data)) is not None and dhcp_packet.xid == tx_id and dhcp_packet.msg_type == msg_type:
-                        logging.debug(f"Received valid DHCP packet of {dhcp_packet.msg_type} type")
+                    if (
+                        (dhcp_packet := self.get_valid_pkt(data)) is not None
+                        and dhcp_packet.xid == tx_id
+                        and dhcp_packet.msg_type == msg_type
+                    ):
+                        logging.debug(
+                            f"Received valid DHCP packet of {dhcp_packet.msg_type} type"
+                        )
                         return dhcp_packet, addr
                     else:
                         if dhcp_packet is None:
                             logging.debug("Invalid DHCP packet")
                         elif dhcp_packet.xid != tx_id:
-                            logging.debug(f"TX ID does not match expected ID {dhcp_packet.xid} != {tx_id}")
+                            logging.debug(
+                                f"TX ID does not match expected ID {dhcp_packet.xid} != {tx_id}"
+                            )
                         elif (msg_type_actual := dhcp_packet.msg_type) != msg_type:
-                            logging.debug(f"DHCP message type does not match expected: {msg_type_actual} != {msg_type}")
+                            logging.debug(
+                                f"DHCP message type does not match expected: {msg_type_actual} != {msg_type}"
+                            )
                         else:
                             logging.debug("Something is wrong with this packet")
                         logging.debug(dhcp_packet)
@@ -300,7 +343,10 @@ class DHCPClient(object):
         while tries < self.max_tries:
             if len(
                 socks := select.select(
-                    self.listening_sockets, self.writing_sockets, self.except_sockets, self.select_timout
+                    self.listening_sockets,
+                    self.writing_sockets,
+                    self.except_sockets,
+                    self.select_timout,
                 )[1]
             ):
                 sock = socks[0]
