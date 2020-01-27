@@ -153,7 +153,6 @@ class DHCPClient(object):
     def get_lease(
         self,
         mac_addr: Optional[str] = None,
-        iface: Optional[str] = None,
         broadcast: bool = True,
         relay: Optional[str] = None,
         server: str = "255.255.255.255",
