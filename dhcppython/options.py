@@ -85,10 +85,10 @@ class OptionList(collections.abc.MutableSequence):
         self.code_to_data: Dict[int, CodeDataMapping] = {
             opt.code: {"obj": opt, "index": i} for i, opt in enumerate(self.data)
         }
-    
+
     def __repr__(self):
         return f"OptionList({self.data})"
-    
+
     def by_code(self, code: int) -> Optional[Option]:
         return self.code_to_data.get(code, {}).get("obj")
 
@@ -143,7 +143,7 @@ class OptionList(collections.abc.MutableSequence):
                     self.code_to_data[value.code] = {
                         "obj": value,
                         "index": key,
-                    }           
+                    }
                     break
 
     def __delitem__(self, key: int):
@@ -154,7 +154,7 @@ class OptionList(collections.abc.MutableSequence):
                 opt["index"] -= 1
         del self.code_to_data[code]
         del self.data[key]
-    
+
     def __contains__(self, other):
         if hasattr(other, "asbytes"):
             return other in self.data
@@ -174,10 +174,7 @@ class OptionList(collections.abc.MutableSequence):
 
     @property
     def json(self):
-        return json.dumps(
-            self.as_dict(),
-            indent=4
-        )
+        return json.dumps(self.as_dict(), indent=4)
 
 
 class OptionDirectory(object):
@@ -199,7 +196,7 @@ class OptionDirectory(object):
     def value_to_code(self, value: dict) -> int:
         code = self.key_code_map.get(list(value)[0])
         return code
-    
+
     def code_to_class(self, code: int) -> Option:
         return self.directory.get(code, UnknownOption)
 
@@ -211,7 +208,9 @@ class OptionDirectory(object):
         code = self.value_to_code(value)
         return self.code_to_class(code).from_value(value)
 
-    def short_value_to_object(self, code: int, short_value: Union[str, int, bool, dict, List[int], List[str]]):
+    def short_value_to_object(
+        self, code: int, short_value: Union[str, int, bool, dict, List[int], List[str]]
+    ):
         cls = self.code_to_class(code)
         return cls.from_value({cls.key: short_value})
 
@@ -234,8 +233,8 @@ class Option(ABC):
         if code != self.code:
             raise DHCPValueError(f"Option code does not match {code} != {self.code}")
         self.length = (
-            length
-        )  # Option size (# of bytes), options 0 and 255 are fixed size (0)
+            length  # Option size (# of bytes), options 0 and 255 are fixed size (0)
+        )
         self.data = data  # Option data in bytes
         self._value: Optional[dict] = None
         self.name = OPTIONS.get(self.code, {}).get("name", "Unknown")
@@ -305,7 +304,10 @@ class Option(ABC):
         num_pairs = len(self.data) // 8
         pairs: List[Tuple[str, str]] = []
         for i in range(num_pairs):
-            ip1, ip2 = [str(ipaddress.IPv4Address(ip)) for ip in struct.unpack(">LL", self.data[i * 8 : (i + 1) * 8])]
+            ip1, ip2 = [
+                str(ipaddress.IPv4Address(ip))
+                for ip in struct.unpack(">LL", self.data[i * 8 : (i + 1) * 8])
+            ]
             pairs.append((ip1, ip2))
         return pairs
 
@@ -442,6 +444,7 @@ class StrOption(Option):
     """
     Generic implementation of string option
     """
+
     @property
     def value(self) -> Dict[str, str]:
         if self._value is None:
@@ -1784,8 +1787,11 @@ class UnknownOption(BinOption):
 
     def __init__(self, code, length, data):
         self.code = code
-        self.key = "".join(OPTIONS.get(code, {}).get("name", "Unknown").split()) + f"_{code}"
+        self.key = (
+            "".join(OPTIONS.get(code, {}).get("name", "Unknown").split()) + f"_{code}"
+        )
         super().__init__(code, length, data)
+
 
 # this should come after the last option is defined
 options = OptionDirectory()
