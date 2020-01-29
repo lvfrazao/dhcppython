@@ -1,5 +1,9 @@
 # DHCP Python Changelog
 
+## 0.1.2 (Jan 29 2020)
+
+* Minor fixes and changes
+
 ## 0.1.1 (Jan 25 2020)
 
 * Minor bug fixes
