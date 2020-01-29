@@ -15,7 +15,7 @@ URL = 'https://github.com/vfrazao-ns1/dhcppython'
 EMAIL = ''
 AUTHOR = 'Victor Frazao'
 REQUIRES_PYTHON = '>=3.8.0'
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 # What packages are required for this module to be executed?
 REQUIRED = []
@@ -89,7 +89,6 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=find_packages(exclude=('tests',)),
-
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,

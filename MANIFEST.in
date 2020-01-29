@@ -1,1 +1,3 @@
 include README.md
+include dhcppython/runtime_assets/options.csv
+include dhcppython/runtime_assets/oui.txt
