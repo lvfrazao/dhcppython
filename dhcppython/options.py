@@ -54,7 +54,7 @@ from __future__ import annotations
 import csv
 from abc import ABC, abstractmethod
 import collections.abc
-from typing import Dict, Union, List, Tuple, Optional, TypedDict
+from typing import Dict, Union, List, Tuple, Optional
 import ipaddress
 import struct
 import json
@@ -74,15 +74,10 @@ OPTIONS: Dict[int, Dict[str, Union[str, int]]] = {
 }
 
 
-class CodeDataMapping(TypedDict):
-    obj: Option
-    index: int
-
-
 class OptionList(collections.abc.MutableSequence):
     def __init__(self, options_array: Optional[List[Option]] = None):
         self.data: List[Option] = list(options_array) if options_array else []
-        self.code_to_data: Dict[int, CodeDataMapping] = {
+        self.code_to_data: Dict[int, int] = {
             opt.code: {"obj": opt, "index": i} for i, opt in enumerate(self.data)
         }
 
