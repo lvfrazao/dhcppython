@@ -62,6 +62,12 @@ import importlib.resources
 from .exceptions import DHCPValueError
 from . import runtime_assets
 
+
+try:
+    options_csv = csv.reader(importlib.resources.open_text(runtime_assets, "options.csv"))
+except:
+    options_csv = []
+
 OPTIONS: Dict[int, Dict[str, Union[str, int]]] = {
     int(line[0]): {
         "name": line[1],
@@ -69,7 +75,7 @@ OPTIONS: Dict[int, Dict[str, Union[str, int]]] = {
         "description": line[3],
         "rfc": line[4].split("RFC")[-1][:-1],
     }
-    for line in csv.reader(importlib.resources.open_text(runtime_assets, "options.csv"))
+    for line in options_csv
     if line[0].isdigit()
 }
 

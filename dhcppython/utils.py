@@ -63,12 +63,15 @@ def is_mac_addr(mac_addr: str) -> bool:
         return False
     return True
 
-
+try:
+    oui_lines = importlib.resources.read_text(runtime_assets, "oui.txt").split("\n")
+except:
+    oui_lines = []
 mac_vendor_map: Dict[str, str] = {
     line.split("\t\t")[0].split(" ")[0]: line.split("\t\t")[1]
     for line in [
         line.strip()
-        for line in importlib.resources.read_text(runtime_assets, "oui.txt").split("\n")
+        for line in oui_lines
         if "(base 16)" in line
     ]
 }
