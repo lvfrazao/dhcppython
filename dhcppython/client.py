@@ -161,7 +161,7 @@ class DHCPClient(object):
         verbose: int = 0,
     ) -> Lease:
         mac_addr = mac_addr or utils.random_mac()
-        logging.debug("Sythensizing discover packet")
+        logging.debug("Synthetizing discover packet")
 
         # D
         discover = packet.DHCPPacket.Discover(
@@ -177,8 +177,8 @@ class DHCPClient(object):
         # O
         tries = 0
         while not (offer := self.receive_offer(tx_id, verbose)):
-            logging.debug(f"Sleeping {self.retry_interval} ms then retyring discover")
-            sleep(self.retry_interval // 1000)
+            logging.debug(f"Sleeping {self.retry_interval} ms then retrying discover")
+            sleep(self.retry_interval / 1000)
             logging.debug(
                 f"Attempt {tries} - Sending discover packet to {server} with {tx_id=}"
             )
@@ -197,6 +197,7 @@ class DHCPClient(object):
             tx_id,
             use_broadcast=broadcast,
             option_list=options_list,
+            client_ip=offer.yiaddr,
             relay=relay,
         )
         if verbose > 1:
@@ -208,8 +209,8 @@ class DHCPClient(object):
         # A
         tries = 0
         while not (ack := self.receive_ack(tx_id, verbose)):
-            logging.debug(f"Sleeping {self.retry_interval} ms then retyring request")
-            sleep(self.retry_interval // 1000)
+            logging.debug(f"Sleeping {self.retry_interval} ms then retrying request")
+            sleep(self.retry_interval / 1000)
             logging.debug(
                 f"Attempt {tries} - Sending request packet to {server} with {tx_id=}"
             )
@@ -299,7 +300,7 @@ class DHCPClient(object):
                 if verbosity > 2:
                     print("Did not receive packet, sleeping...")
                 tries += 1
-                sleep(self.socket_poll_interval // 1000)
+                sleep(self.socket_poll_interval / 1000)
         return dhcp_packet, addr
 
     def get_socket(self, host: str, port: int) -> socket.socket:
@@ -311,7 +312,8 @@ class DHCPClient(object):
             try:
                 # Option 25 is SO_BINDTODEVICE, allows us to specify a device
                 # to bind to with this socket
-                sock.setsockopt(socket.SOL_SOCKET, 25, self.interface.encode())
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, self.interface.encode())
+                logging.info(f"Binding to {self.interface}")
             except:
                 # Less reliable method of binding to interface, required where
                 # socket option 25 does not exist (Windows)
@@ -320,6 +322,8 @@ class DHCPClient(object):
                 sock.bind((host, port))
         else:
             sock.bind((host, port))
+
+        logging.info(f"Bound {socket}")
         return sock
 
     def get_writing_sockets(self) -> List[socket.socket]:
@@ -333,6 +337,7 @@ class DHCPClient(object):
         socks = []
         host = ""
         for port in self.listening_ports:
+            logging.debug(f"Creating socket to receiving data, binding to {(host, port)}")
             server_sock = self.get_socket(host, port)
             socks.append(server_sock)
         return socks
@@ -340,6 +345,7 @@ class DHCPClient(object):
     def send(self, remote_addr: str, remote_port: int, data: bytes, verbosity: int):
         tries = 0
         while tries < self.max_tries:
+            logging.debug(f"Select: {select.select(self.listening_sockets, self.writing_sockets, self.except_sockets, self.select_timout,)}")
             if len(
                 socks := select.select(
                     self.listening_sockets,
@@ -354,11 +360,12 @@ class DHCPClient(object):
                 if verbosity > 1:
                     print(f">> Sending packet {remote_addr}:{remote_port}")
                 sock.sendto(data, (remote_addr, remote_port))
+                logging.debug(f"Packet Sent")
                 break
             else:
-                logging.debug(
+                logging.warning(
                     f"Attempt {tries} - No sockets available to write to... "
                     f"sleeping for {self.socket_poll_interval} ms"
                 )
                 tries += 1
-                sleep(self.socket_poll_interval // 1000)
+                sleep(self.socket_poll_interval / 1000)

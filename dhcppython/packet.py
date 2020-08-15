@@ -357,6 +357,7 @@ class DHCPPacket(object):
         relay: Optional[str] = None,
         sname: bytes = b"",
         fname: bytes = b"",
+        client_ip=ipaddress.IPv4Address(0),
         option_list: Optional[options.OptionList] = None,
     ):
         """
@@ -377,7 +378,7 @@ class DHCPPacket(object):
             tx_id,
             seconds,
             0b1000_0000_0000_0000 if use_broadcast else 0,
-            ipaddress.IPv4Address(0),
+            client_ip,
             ipaddress.IPv4Address(0),
             ipaddress.IPv4Address(0),
             relay_ip,
