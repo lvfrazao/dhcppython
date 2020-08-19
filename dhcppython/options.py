@@ -1779,6 +1779,16 @@ class StreetTalkDirectoryAssistanceServer(IPArrayOption):
     code = 76
     key = "stda_servers"
 
+class RelayAgentInformation(StrOption):
+    """
+    Option 82
+
+    Relay Agent Information
+    """
+
+    code = 82
+    key = "relay_agent_info"
+
 
 class UnknownOption(BinOption):
     """
