@@ -1,5 +1,9 @@
 # DHCP Python Changelog
 
+## 0.1.3 (Aug 19 2020)
+
+* Merges (PR #4)[https://github.com/vfrazao-ns1/dhcppython/pull/4] which extends option 82 support
+
 ## 0.1.2 (Jan 29 2020)
 
 * Minor fixes and changes
