@@ -65,7 +65,7 @@ class DHCPPacket(object):
     magic_cookie: ClassVar[bytes] = b"\x63\x82\x53\x63"
     cookie_offset_start: ClassVar[int] = 236
     cookie_offset_end: ClassVar[int] = 240
-    packet_fmt: ClassVar[str] = ">BBBBLHHLLLL16s64s128s"
+    packet_fmt: ClassVar[str] = "!BBBBLHHLLLL16s64s128s"
     op_map: ClassVar[Dict[int, str]] = {1: "BOOTREQUEST", 2: "BOOTREPLY"}
     inverse_op_map: ClassVar[Dict[str, int]] = {v: k for k, v in op_map.items()}
     htype_map: ClassVar[Dict[int, str]] = {
@@ -125,7 +125,7 @@ class DHCPPacket(object):
             raise MalformedPacketError("Magic cookie missing")
         try:
             decoded_packet = [
-                field.strip(b"\x00") if isinstance(field, bytes) else field
+                field.rstrip(b"\x00") if isinstance(field, bytes) else field
                 for field in struct.unpack(
                     cls.packet_fmt, packet[: cls.cookie_offset_start]
                 )
