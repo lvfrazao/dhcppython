@@ -111,7 +111,8 @@ class DHCPPacket(object):
 
     @property
     def msg_type(self) -> Optional[str]:
-        if msg_type_option := self.options.by_code(53):
+        msg_type_option = self.options.by_code(53)
+        if msg_type_option:
             return list(msg_type_option.value.values())[0]
         else:
             return None

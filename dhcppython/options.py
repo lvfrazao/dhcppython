@@ -54,7 +54,7 @@ from __future__ import annotations
 import csv
 from abc import ABC, abstractmethod
 import collections.abc
-from typing import Dict, Union, List, Tuple, Optional, TypedDict
+from typing import Dict, Union, List, Tuple, Optional
 import ipaddress
 import struct
 import json
@@ -74,9 +74,7 @@ OPTIONS: Dict[int, Dict[str, Union[str, int]]] = {
 }
 
 
-class CodeDataMapping(TypedDict):
-    obj: Option
-    index: int
+CodeDataMapping = dict
 
 
 class OptionList(collections.abc.MutableSequence):
