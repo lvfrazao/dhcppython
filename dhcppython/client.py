@@ -323,7 +323,7 @@ class DHCPClient(object):
         else:
             sock.bind((host, port))
 
-        logging.info(f"Bound {socket}")
+        logging.info(f"Bound {sock}")
         return sock
 
     def get_writing_sockets(self) -> List[socket.socket]:
