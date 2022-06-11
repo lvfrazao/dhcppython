@@ -50,6 +50,10 @@ class PacketTestCases(unittest.TestCase):
             ack_linux
         )
 
+    def test_parse_exclude_end_option(self):
+        parsed_packet = packet.DHCPPacket.from_bytes(discover_linux)
+        self.assertIsNone(parsed_packet.options.by_code(255))
+
 
 request_android: List[int] = [
     0x01, 0x01, 0x06, 0x00, 0xea, 0xbe,
