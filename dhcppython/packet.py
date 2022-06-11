@@ -135,19 +135,36 @@ class DHCPPacket(object):
 
         options_list = options.OptionList()
         read_pos = cls.cookie_offset_end
-        code = 0
-        while read_pos < len(packet) and code != 255:
-            code = packet[read_pos]
-            if code in [0, 255]:
-                data_read_size = 1
-            else:
-                length = packet[read_pos + 1]
-                data_read_size = 1 + 1 + length
+        end_maker = False
+        while read_pos < len(packet):
+            if end_maker:
+                raise MalformedPacketError("Data after END option/marker")
 
-            option_bytes = packet[read_pos : read_pos + data_read_size]
+            option_bytes = code = packet[read_pos]
+            if code == options.End.code:
+                end_maker = True
+                read_pos += 1
+                continue
+
+            if code != options.Pad.code:
+                try:
+                    length = packet[read_pos + 1]
+                except IndexError:
+                    length = 0
+                data_read_size = 1 + 1 + length
+                option_bytes = packet[read_pos:read_pos + data_read_size]
+                if data_read_size < len(option_bytes):
+                    raise MalformedPacketError(
+                        "Insufficient data, attempt to read {} bytes at offset "
+                        "{}, but got only {}".format(
+                            data_read_size, read_pos, len(option_bytes)))
+
             options_object = OPTIONS_INTERFACE.bytes_to_object(option_bytes)
             options_list.append(options_object)
-            read_pos += data_read_size
+            read_pos += len(option_bytes)
+
+        if not end_maker and len(options_list):
+            raise MalformedPacketError("Missing END option")
 
         decoded_packet.append(options_list)
         # Decode the op code
